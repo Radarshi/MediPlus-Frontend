@@ -9,7 +9,7 @@ import { Eye, Heart, Pill, Search, ShoppingCart, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const StorePage = () => {
-  // --- states (kept your original variable names where present) ---
+  // states (kept your original variable names where present)
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMedicine, setSelectedMedicine] = useState(null);
@@ -38,7 +38,7 @@ const StorePage = () => {
 
   const { addToCart } = useCart();
 
-  // --- fetch data ---
+  // fetch data 
   useEffect(() => {
     const fetchData = async () => {
       const { data: meds, error } = await supabase.from('medicine_store_new').select('*');
@@ -60,7 +60,7 @@ const StorePage = () => {
     setWishlist((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  // --- filtering / sorting logic ---
+  //  filtering / sorting logic 
   const filteredMedicines = medicines
     .filter((medicine) => {
       const matchesCategory = selectedCategory === 'all' || medicine.category === selectedCategory;
