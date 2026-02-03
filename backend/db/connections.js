@@ -10,7 +10,7 @@ let orderConnection;
 
 export const initUserConnection = async () => {
   if (!userConnection) {
-    const uri = process.env.MONGODB_URI;
+    const uri = process.env.MONGODB_USER_URI;
     if (!uri) throw new Error("MONGODB_URI missing in .env file");
     
     console.log('Connecting to User Database...');
