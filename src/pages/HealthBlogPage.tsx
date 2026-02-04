@@ -46,7 +46,7 @@ const HealthBlogPage = () => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/blogs")
+    fetch(`${import.meta.env.BACKEND_URL}/api/blogs`)
       .then((res) => res.json())
       .then((data) => setblogPosts(data));
   }, []);

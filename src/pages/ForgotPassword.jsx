@@ -1,4 +1,3 @@
-// frontend/src/pages/ForgotPassword.jsx
 import React, { useState } from 'react';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +15,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/password-reset/request', {
+      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/password-reset/request`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

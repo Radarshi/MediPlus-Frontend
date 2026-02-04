@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Mail, Pen, Pencil, User, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import dotenv from 'dotenv';
+dotenv.config();
 
 interface BlogFormProps {
   isOpen: boolean;
@@ -26,7 +28,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ isOpen }) => {
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
-    const response = await fetch('http://localhost:3000/api/blogs', {
+    const response = await fetch(`${import.meta.env.BACKEND_URL}/api/blogs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

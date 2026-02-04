@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { ArrowRight, Clock, Shield, Star, Users } from 'lucide-react';

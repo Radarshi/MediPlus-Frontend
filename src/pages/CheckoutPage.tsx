@@ -85,7 +85,7 @@ const CheckoutPage = () => {
   
     
     try {
-      const response = await fetch('http://localhost:3000/api/orders/request-consultation', {
+      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/orders/request-consultation`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -149,7 +149,7 @@ const CheckoutPage = () => {
         formData.append('prescription', prescriptionFile);
       }
 
-      const response = await fetch('http://localhost:3000/api/orders/create', {
+      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/orders/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -33,7 +33,7 @@ const LabTestBookingModal = ({ test, isOpen, onClose }: LabTestBookingModalProps
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // ✅ prevent page reload
 
-    const res = await fetch('http://localhost:3000/api/lab-booking', {
+    const res = await fetch(`${import.meta.env.BACKEND_URL}/api/lab-booking`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

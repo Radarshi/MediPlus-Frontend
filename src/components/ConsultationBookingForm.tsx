@@ -35,7 +35,7 @@ const ConsultationBookingForm = () => {
   } else
       await alert("Please select a doctor.");
     
-    const res = await fetch('http://localhost:3000/api/consulting', {
+    const res = await fetch(`${import.meta.env.BACKEND_URL}/api/consulting`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),

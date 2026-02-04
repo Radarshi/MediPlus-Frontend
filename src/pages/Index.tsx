@@ -1,7 +1,3 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
 import HeroSection from '../components/HeroSection';
 import DiscountsSection from '../components/DiscountsSection';
 import MedicinesOverview from '../components/MedicinesOverview';

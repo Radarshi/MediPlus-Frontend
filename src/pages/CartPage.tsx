@@ -10,14 +10,13 @@ import { Input } from '@/components/ui/input';
 import { useCart } from '@/components/cartcontext.tsx';
 
 const CartPage = () => {
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useCart();    // These are the functions we defined in cartcontext.tsx
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useCart();
   
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [showCouponInput, setShowCouponInput] = useState(false);
-  const [cartItems, setCartItems] = useState([]);     //Local copy of cart items (syncs with context cart)
+  const [cartItems, setCartItems] = useState([]);
 
-  // Update local cart state when cart context changes
   useEffect(() => {
     setCartItems([...cart]);
   }, [cart]);

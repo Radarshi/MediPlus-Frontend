@@ -1,6 +1,4 @@
-// src/pages/Signup.jsx
-import React from 'react';
-import AuthForm from '../components/AuthForm';
+import AuthForm from '../components/Authform.jsx';
 import { useNavigate } from 'react-router-dom';
 
 export default function Signup() {
@@ -8,9 +6,9 @@ export default function Signup() {
 
   const handleSignup = async (form) => {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/signup', { // ✅ FIXED URL
+      const res = await fetch(`${import.meta.env.BACKEND_URL}/api/auth/signup`, {
         method: 'POST',
-        credentials: 'include', // ✅ ADDED - Send cookies
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });

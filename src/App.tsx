@@ -15,7 +15,7 @@ import Index from "./pages/Index";
 import LabTestPage from "./pages/LabTestPage";
 import Login from './pages/Login';
 import NotFound from "./pages/NotFound";
-import Signup from './pages/Signup';
+import Signup from './pages/Signup.jsx';
 import StorePage from "./pages/StorePage";
 import CartPage from "./pages/CartPage.tsx";
 import CheckoutPage from "./pages/CheckoutPage";

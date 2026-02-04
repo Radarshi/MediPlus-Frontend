@@ -5,7 +5,7 @@ import { Package, Truck, CheckCircle, XCircle, Clock, MapPin, Phone, Mail, Chevr
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, pending, shipped, delivered, cancelled
+  const [filter, setFilter] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +21,7 @@ const Orders = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/orders/my-orders", {
+      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/orders/my-orders`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"

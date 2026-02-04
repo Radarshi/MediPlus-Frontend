@@ -1,5 +1,3 @@
-// src/pages/Login.jsx
-import React from 'react';
 import AuthForm from '../components/AuthForm';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,9 +6,9 @@ export default function Login() {
 
   const handleLogin = async (form) => {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', { // ✅ FIXED URL
+      const res = await fetch(`${import.meta.env.BACKEND_URL}/api/auth/login`, {
         method: 'POST',
-        credentials: 'include', // ✅ ADDED - Send cookies
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),
       });

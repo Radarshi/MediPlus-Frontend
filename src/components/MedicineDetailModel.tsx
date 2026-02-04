@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Star, ShoppingCart, Heart, Shield, Clock, Pill } from 'lucide-react';
 import { Button } from '@/components/ui/button';
