@@ -5,8 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Calendar, Mail, Pen, Pencil, User, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import dotenv from 'dotenv';
-dotenv.config();
 
 interface BlogFormProps {
   isOpen: boolean;
