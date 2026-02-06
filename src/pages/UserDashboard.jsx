@@ -37,7 +37,7 @@ const UserDashboard = () => {
           });
         }
 
-        const response = await fetch(`${import.meta.env.BACKEND_URL}/api/me`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/me`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -97,7 +97,7 @@ const UserDashboard = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/update-profile`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/update-profile`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,

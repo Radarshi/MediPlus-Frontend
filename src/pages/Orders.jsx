@@ -21,7 +21,7 @@ const Orders = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.BACKEND_URL}/api/orders/my-orders`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/my-orders`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"

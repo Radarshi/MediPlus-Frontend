@@ -26,7 +26,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ isOpen }) => {
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
-    const response = await fetch(`${import.meta.env.BACKEND_URL}/api/blogs`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/blogs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

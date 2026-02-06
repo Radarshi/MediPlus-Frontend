@@ -94,7 +94,7 @@ const PaymentModal = ({
     try {
     console.log("📧 Sending confirmation email to:", booking.email);
       
-      const resp = await fetch(`${import.meta.env.BACKEND_URL}/api/send-confirmation`, {
+      const resp = await fetch(`${import.meta.env.VITE_API_URL}/api/send-confirmation`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(booking),

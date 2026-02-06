@@ -6,7 +6,7 @@ export default function Login() {
 
   const handleLogin = async (form) => {
     try {
-      const res = await fetch(`${import.meta.env.BACKEND_URL}/api/auth/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
