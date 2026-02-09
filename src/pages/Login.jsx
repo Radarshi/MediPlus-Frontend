@@ -8,7 +8,7 @@ export default function Login() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: "include",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email, password: form.password }),
       });
@@ -21,7 +21,6 @@ export default function Login() {
       }
       
       // Store token in localStorage as backup
-      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
       // Navigate to home or dashboard

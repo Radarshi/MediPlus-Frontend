@@ -23,7 +23,6 @@ const LabTestPage = () => {
     { id: 'hormonal', name: 'Hormonal Tests', count: 12 }
   ];
 
-
   useEffect(()=>{
     const fetchData = async () =>{
       const {data:labTests, error: testError} = await supabase
@@ -40,7 +39,6 @@ const LabTestPage = () => {
     };
     fetchData();
   },[])
-
 
   const filteredTests = labTests.filter(test => {
     const matchesCategory = selectedCategory === 'all' || test.category === selectedCategory;
