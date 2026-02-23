@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { CartProvider } from "./components/cartcontext.tsx";
 import LoadingScreen from "./components/LoadingScreen";
 import Navbar from "./components/Navbar";
@@ -27,25 +27,6 @@ import ResetPassword from './pages/ResetPassword';
 
 const queryClient = new QueryClient();
 
-// Component to handle OAuth token in URL
-const OAuthHandler = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-    
-    if (token) {
-      localStorage.setItem('token', token);
-      alert('Login successful via Google!');
-      navigate('/', { replace: true });
-    }
-  }, [location, navigate]);
-
-  return null;
-};
-
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -62,13 +43,12 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter
-        future={{
+          future={{
             v7_startTransition: true,
             v7_relativeSplatPath: true,
-        }}
+          }}
         >
           <CartProvider>
-            <OAuthHandler />
             <AnimatePresence mode="wait">
               {isLoading ? (
                 <LoadingScreen key="loading" />
@@ -86,12 +66,13 @@ const App = () => {
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/lab-tests" element={<LabTestPage />} />
                     <Route path="/health-blog" element={<HealthBlogPage />} />
-                    <Route path="*" element={<NotFound />} />
                     <Route path="/dashboard" element={<UserDashboard />} />
+                    {/* ✅ OAuth callback route - handles Google login */}
                     <Route path="/auth/success" element={<AuthSuccess />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
               )}

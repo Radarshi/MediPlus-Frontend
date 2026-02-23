@@ -79,8 +79,13 @@ export default function AuthForm({ type = 'signup', onSubmit }) {
     }
   };
 
+  // ✅ FIXED: Use environment variable and correct route path
   const handleGoogleAuth = () => {
-    window.location.href = 'http://localhost:3000/auth/google';
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const googleAuthUrl = `${backendUrl}/api/auth/google`;
+    
+    console.log('🔗 Redirecting to Google OAuth:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   };
 
   const getPasswordStrengthColor = () => {

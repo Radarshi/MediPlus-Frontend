@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, Truck, CheckCircle, XCircle, Clock, MapPin, Phone, Mail, ChevronRight, Calendar } from "lucide-react";
 
+// ✅ FIXED: Define API_URL with correct environment variable name
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'https://mediplus-backend-qvde.onrender.com';
+
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,23 +24,30 @@ const Orders = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/my-orders`, {
+      console.log('📡 Fetching orders from:', `${API_URL}/api/orders/my-orders`);
+      
+      const response = await fetch(`${API_URL}/api/orders/my-orders`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
         }
       });
 
+      console.log('📥 Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Orders fetched:', data.orders);
         setOrders(data.orders);
       } else if (response.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         navigate("/login");
+      } else {
+        console.error('❌ Failed to fetch orders:', response.status);
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error("❌ Error fetching orders:", error);
     } finally {
       setLoading(false);
     }

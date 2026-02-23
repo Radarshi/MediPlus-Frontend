@@ -28,21 +28,19 @@ const Navbar = () => {
 
     if (token) {
       setIsAuthenticated(true);
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          setUserName(user.name);
-          setUserPicture(user.picture || '');
-        } catch (err) {
-          console.error('User parse error:', err);
-        }
-      }
-    } else {
-      setIsAuthenticated(false);
-      setUserName('');
-      setUserPicture('');
-    }
-  };
+    if (userStr && userStr !== "undefined" && userStr.trim() !== "") { 
+      try { 
+        const user = JSON.parse(userStr); 
+        setUserName(user.name || ""); 
+        setUserPicture(user.picture || ""); } 
+        catch (err) {
+           console.error("User parse error:", err);
+            setUserName(""); 
+            setUserPicture(""); } } }
+             else { 
+              setIsAuthenticated(false);
+               setUserName(""); 
+               setUserPicture(""); } };
 
   useEffect(() => {
     checkAuthStatus();

@@ -46,13 +46,13 @@ const UserDashboard = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setUser(data.user);
-          localStorage.setItem("user", JSON.stringify(data.user));
+          setUser(data); // ✅ backend returns user object directly
+          localStorage.setItem("user", JSON.stringify(data));
           setEditForm({
-            name: data.user.name || "",
-            phone: data.user.phone || "",
-            age: data.user.age || "",
-            gender: data.user.gender || "other"
+            name: data.name || "",
+            phone: data.phone || "",
+            age: data.age || "",
+            gender: data.gender || "other"
           });
         } else if (response.status === 401) {
           localStorage.removeItem("token");
@@ -97,27 +97,29 @@ const UserDashboard = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/update-profile`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: editForm.name,
-          phone: editForm.phone,
-          age: parseInt(editForm.age) || 0,
-          gender: editForm.gender
-        })
-      });
+     const response = await fetch(`${import.meta.env.VITE_API_URL}/api/me`, {
+  method: "PUT",
+  headers: {
+    "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(editForm)
+});
+
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data); // ✅ backend returns user object directly
+        localStorage.setItem("user", JSON.stringify(data));
+        setEditForm({
+          name: data.name || "",
+          phone: data.phone || "",
+          age: data.age || "",
+          gender: data.gender || "other"
+        });
         setIsEditing(false);
         alert("Profile updated successfully!");
-        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new Event("storage"));
       } else {
         const error = await response.json();
         alert(error.error || "Failed to update profile");
@@ -129,6 +131,7 @@ const UserDashboard = () => {
       setSaveLoading(false);
     }
   };
+
 
   if (loading) {
     return (

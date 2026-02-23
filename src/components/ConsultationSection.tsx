@@ -1,117 +1,305 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { motion } from 'framer-motion';
-import { MessageCircle, Phone, Video } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
-const ConsultationSection = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
+const ConsultationBookingForm = () => {
+  const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [selectedSpecialization, setSelectedSpecialization] = useState('');
+  const [time, setTime] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const itemVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.6,
-      },
-    },
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      const {data: doctors, error: docError} = await supabase
+        .from('consult')
+        .select('*');
 
-  const consultationTypes = [
-    {
-      icon: Video,
-      title: 'Video Consultation',
-      description: 'Face-to-face consultation with doctors',
-      price: 'Starting from $25',
-      features: ['HD Video Call', 'Instant Connection', 'Digital Prescription'],
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      icon: MessageCircle,
-      title: 'Chat Consultation',
-      description: 'Text-based consultation for quick queries',
-      price: 'Starting from $15',
-      features: ['Instant Messaging', '24/7 Available', 'Quick Response'],
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      icon: Phone,
-      title: 'Phone Consultation',
-      description: 'Voice consultation with medical experts',
-      price: 'Starting from $20',
-      features: ['Clear Audio', 'Call Recording', 'Follow-up Support'],
-      color: 'from-purple-500 to-purple-600'
+      if (docError)
+        console.error('Failed to fetch data', docError.message);
+      else
+        setDoctors(doctors || []);
+    };
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // ✅ CRITICAL: Check if doctor is selected
+    if (!selectedDoctor) {
+      alert("Please select a doctor first.");
+      return;
     }
-  ];
 
+    // Get logged-in user data
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+      alert("Please login first to book consultation.");
+      window.location.href = '/login';
+      return;
+    }
+
+    const user = JSON.parse(userStr);
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // Build consultation data
+      const consultData = {
+        name: formData.get('name'),
+        age: parseInt(formData.get('age') as string),
+        phone: formData.get('phone'),
+        email: user.email,
+        symptoms: formData.get('symptoms'),
+        preferred_date: formData.get('preferred_date'),
+        preferred_time: formData.get('preferred_time'),
+        doctor_name: selectedDoctor.name,
+        doctor_id: selectedDoctor.id
+      };
+
+      console.log('📦 Submitting consultation booking:', consultData);
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      
+      const res = await fetch(`${API_URL}/api/consulting`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(consultData),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || data.details || 'Booking failed');
+      }
+      
+      // Success!
+      alert('✅ Your consultation has been booked successfully!\n\nConfirmation email sent to: ' + user.email);
+      
+      // Reset form
+      e.currentTarget.reset();
+      setSelectedDoctor(null);
+      setSelectedSpecialization('');
+      setTime('');
+      
+    } catch (error: any) {
+      console.error('❌ Booking error:', error);
+      alert(`Booking failed: ${error.message}\n\nPlease check if you're logged in and try again.`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   return (
-    <section className="py-16 bg-gradient-to-br from-indigo-50 to-purple-50">
-      <div className="container mx-auto px-6">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-4xl font-bold mb-4"
-          >
-            Online Consultation Services
-          </motion.h2>
-          <motion.p 
-            variants={itemVariants}
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
-          >
-            Connect with qualified doctors from the comfort of your home
-          </motion.p>
-        </motion.div>
+    <div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Book Your Consultation</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* ✅ CRITICAL: Doctor Selection FIRST */}
+            <div className='p-2 bg-yellow-50 border border-yellow-200 rounded-lg'>
+              <label className="block text-sm font-medium mb-2">1. Select Specialization</label>
+              <select
+                className="w-full p-2 border rounded-lg"
+                value={selectedSpecialization}
+                onChange={(e) => {
+                  setSelectedSpecialization(e.target.value);
+                  setSelectedDoctor(null);
+                }}
+                disabled={isSubmitting}
+              >
+                <option value="">-- All Specializations --</option>
+                {[...new Set(doctors.flatMap((doc) => doc.specializations || [doc.specialty]))].map((spec) => (
+                  <option key={spec} value={spec}>{spec}</option>
+                ))}
+              </select>
+            </div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
-        >
-          {consultationTypes.map((type, index) => (
-            <motion.div key={index} variants={itemVariants}>
-              <Card className="h-full hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                <CardContent className="p-6 text-center">
-                  <div className={`bg-gradient-to-br ${type.color} w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                    <type.icon className="w-8 h-8 text-white" />
+            <div className='p-2 bg-blue-50 border border-blue-200 rounded-lg'>
+              <label className="block text-sm font-medium mb-2">2. Select Doctor *</label>
+              <select
+                className="w-full p-3 border-2 rounded-lg"
+                value={selectedDoctor?.id || ""}
+                onChange={(e) => {
+                  const doc = doctors.find((d) => String(d.id) === e.target.value);
+                  setSelectedDoctor(doc || null);
+                }}
+                required
+                disabled={isSubmitting}
+              >
+                <option value="">-- Choose a Doctor --</option>
+                {doctors
+                  .filter((doc) =>
+                    selectedSpecialization
+                      ? (doc.specializations?.includes(selectedSpecialization) || 
+                         doc.specialty === selectedSpecialization)
+                      : true
+                  )
+                  .map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.name} ({doc.specializations?.[0] || doc.specialty}) - ₹{doc.video_price || doc.videoPrice}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Show selected doctor details */}
+            {selectedDoctor && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                <div className="flex items-center gap-3">
+                  <div className="text-3xl">{selectedDoctor.image}</div>
+                  <div>
+                    <div className="font-semibold text-lg">{selectedDoctor.name}</div>
+                    <div className="text-sm text-gray-600">
+                      {selectedDoctor.specializations?.[0] || selectedDoctor.specialty}
+                    </div>
+                    <div className="text-lg font-bold text-green-600">
+                      ₹{selectedDoctor.video_price || selectedDoctor.videoPrice}
+                    </div>
                   </div>
-                  <h3 className="font-bold text-xl mb-2">{type.title}</h3>
-                  <p className="text-gray-600 mb-4">{type.description}</p>
-                  <div className="text-2xl font-bold text-green-600 mb-4">{type.price}</div>
-                  <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                    {type.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center justify-center">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button className={`w-full bg-gradient-to-r ${type.color}`}>
-                    Book Now
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
+                </div>
+              </div>
+            )}
+
+            {/* Only show rest of form if doctor selected */}
+            {selectedDoctor && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Full Name *</label>
+                    <Input 
+                      placeholder="Enter your full name" 
+                      required 
+                      name='name'
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Age *</label>
+                    <Input 
+                      placeholder="Your age" 
+                      type="number" 
+                      required 
+                      name='age' 
+                      min="1" 
+                      max="120"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Phone Number *</label>
+                  <Input 
+                    placeholder="Enter your phone number" 
+                    name='phone' 
+                    required
+                    pattern="[0-9]{10}"
+                    title="Please enter a 10-digit phone number"
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email Address *</label>
+                  <Input 
+                    placeholder="Enter your email" 
+                    type="email" 
+                    name='email' 
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Symptoms / Concerns *</label>
+                  <Textarea 
+                    placeholder="Describe your symptoms or health concerns..." 
+                    className="h-24" 
+                    name='symptoms' 
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Preferred Date *</label>
+                    <Input 
+                      type="date" 
+                      name='preferred_date' 
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                      disabled={isSubmitting}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Preferred Time *</label>
+                    <select 
+                      className="w-full p-2 border rounded-lg" 
+                      name='preferred_time' 
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      required
+                      disabled={isSubmitting}
+                    >
+                      <option value="">-- Select Time --</option>
+                      <option value="9:00 AM">9:00 AM</option>
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="11:00 AM">11:00 AM</option>
+                      <option value="12:00 PM">12:00 PM</option>
+                      <option value="1:00 PM">1:00 PM</option>
+                      <option value="2:00 PM">2:00 PM</option>
+                      <option value="3:00 PM">3:00 PM</option>
+                      <option value="4:00 PM">4:00 PM</option>
+                      <option value="5:00 PM">5:00 PM</option>
+                      <option value="6:00 PM">6:00 PM</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button 
+                  className="w-full py-3 text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md transition-all duration-300 hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="submit"
+                  disabled={!selectedDoctor || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Booking...
+                    </span>
+                  ) : (
+                    'Book Consultation'
+                  )}
+                </button>
+              </>
+            )}
+
+            {!selectedDoctor && (
+              <div className="text-center py-8 text-gray-500">
+                <p>👆 Please select a doctor first to continue</p>
+              </div>
+            )}
+
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
-export default ConsultationSection;
+export default ConsultationBookingForm;

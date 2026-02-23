@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { useCart } from '@/components/cartcontext.tsx';
 import PaymentModal from '@/components/PaymentModal';
 
+// ✅ Import API_URL from config
+import { API_URL } from '@/config/api';
+
 const CheckoutPage = () => {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ const CheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState('');
+  const [finalOrderTotal, setFinalOrderTotal] = useState(0);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'cod'>('upi');
@@ -52,8 +56,8 @@ const CheckoutPage = () => {
     return fullName && email && phone && address && city && state && zipCode;
   };
 
-  /* PLACE ORDER */
-  const handlePlaceOrder = async () => {
+  /* PLACE ORDER - ✅ FIXED: Accept transactionId as parameter */
+  const handlePlaceOrder = async (transactionId: string | null = null) => {
     const token = localStorage.getItem('token');
     if (!token) {
       alert('Session expired. Please login again.');
@@ -64,36 +68,88 @@ const CheckoutPage = () => {
     setIsProcessing(true);
 
     try {
-      const formData = new FormData();
-      formData.append('deliveryInfo', JSON.stringify(deliveryInfo));
-      formData.append('items', JSON.stringify(cart));
-      formData.append('paymentMethod', paymentMethod);
-      formData.append('paymentStatus', paymentMethod === 'upi' ? 'paid' : 'pending');
-      formData.append('subtotal', calculateSubtotal().toString());
-      formData.append('deliveryCharge', calculateDeliveryCharge().toString());
-      formData.append('total', calculateTotal().toString());
+      const orderTotal = calculateTotal();
+      
+      // ✅ FIXED: Use transactionId parameter directly
+      const orderData = {
+        deliveryInfo: {
+          fullName: deliveryInfo.fullName,
+          email: deliveryInfo.email,
+          phone: deliveryInfo.phone,
+          address: deliveryInfo.address,
+          city: deliveryInfo.city,
+          state: deliveryInfo.state,
+          zipCode: deliveryInfo.zipCode,
+          landmark: deliveryInfo.landmark || ''
+        },
+        items: cart.map(item => ({
+          id: item.id || item._id || `item-${Date.now()}-${Math.random()}`,
+          name: item.name,
+          price: Number(item.price),
+          quantity: Number(item.quantity),
+          generic_name: item.generic_name || '',
+          manufacturer: item.manufacturer || '',
+          dosage: item.dosage || '',
+          image_url: item.image_url || item.image || '',
+          prescription: item.prescription || false
+        })),
+        paymentMethod: paymentMethod,
+        transactionId: transactionId, // ✅ Use parameter directly!
+        prescriptionUrl: null,
+        requiresConsultation: false,
+        subtotal: calculateSubtotal(),
+        discount: 0,
+        deliveryCharge: calculateDeliveryCharge(),
+        total: orderTotal,
+        orderNotes: ''
+      };
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/create`, {
+      console.log('📦 Sending order to:', `${API_URL}/api/orders/create`);
+      console.log('📦 Order data:', orderData);
+      console.log('📦 Transaction ID:', transactionId);
+
+      const res = await fetch(`${API_URL}/api/orders/create`, {
         method: 'POST',
         credentials: 'include',
-        headers: { Authorization: `Bearer ${token}`},
-        body: formData
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
       });
 
-      const data = await res.json();
+      console.log('📥 Response status:', res.status);
 
       if (!res.ok) {
-        alert(data.error || 'Order failed');
+        const errorText = await res.text();
+        console.error('❌ Error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText };
+        }
+        
+        alert(errorData.error || 'Order failed');
         return;
       }
 
-      setOrderId(data.orderId);
-      setOrderPlaced(true);
-      clearCart();
+      const data = await res.json();
+      console.log('✅ Order response:', data);
 
-    } catch (err) {
-      console.error(err);
-      alert('Order failed');
+      if (data.success) {
+        setFinalOrderTotal(orderTotal);
+        setOrderId(data.order?.orderId || 'ORDER_PLACED');
+        setOrderPlaced(true);
+        clearCart();
+      } else {
+        throw new Error(data.error || 'Order failed');
+      }
+
+    } catch (err: any) {
+      console.error('❌ Order error:', err);
+      alert('Order failed: ' + (err.message || 'Unknown error'));
     } finally {
       setIsProcessing(false);
     }
@@ -102,9 +158,11 @@ const CheckoutPage = () => {
   /* PAYMENT TRIGGER */
   const handleFinalCheckout = () => {
     if (paymentMethod === 'upi') {
+      console.log('💳 Opening UPI payment modal');
       setIsPaymentOpen(true);
     } else {
-      handlePlaceOrder();
+      console.log('💵 Processing COD order');
+      handlePlaceOrder(null); // COD doesn't need transaction ID
     }
   };
 
@@ -117,7 +175,7 @@ const CheckoutPage = () => {
             <CheckCircle className="w-20 h-20 text-green-600 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Order Placed Successfully</h1>
             <p className="text-gray-600 mb-4">Order ID: {orderId}</p>
-            <p className="font-semibold mb-6">₹{calculateTotal().toFixed(2)}</p>
+            <p className="font-semibold mb-6">₹{finalOrderTotal.toFixed(2)}</p>
             <Button onClick={() => navigate('/orders')}>
               View Orders
             </Button>
@@ -147,18 +205,22 @@ const CheckoutPage = () => {
                   placeholder="Full Name"
                   value={deliveryInfo.fullName}
                   onChange={(e) => setDeliveryInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                  required
                 />
 
                 <Input
                   placeholder="Email"
+                  type="email"
                   value={deliveryInfo.email}
                   onChange={(e) => setDeliveryInfo(prev => ({ ...prev, email: e.target.value }))}
+                  required
                 />
 
                 <Input
                   placeholder="Phone"
                   value={deliveryInfo.phone}
                   onChange={(e) => setDeliveryInfo(prev => ({ ...prev, phone: e.target.value }))}
+                  required
                 />
 
                 <textarea
@@ -166,6 +228,7 @@ const CheckoutPage = () => {
                   placeholder="Address"
                   value={deliveryInfo.address}
                   onChange={(e) => setDeliveryInfo(prev => ({ ...prev, address: e.target.value }))}
+                  required
                 />
 
                 <div className="grid grid-cols-3 gap-4">
@@ -173,16 +236,19 @@ const CheckoutPage = () => {
                     placeholder="City"
                     value={deliveryInfo.city}
                     onChange={(e) => setDeliveryInfo(prev => ({ ...prev, city: e.target.value }))}
+                    required
                   />
                   <Input
                     placeholder="State"
                     value={deliveryInfo.state}
                     onChange={(e) => setDeliveryInfo(prev => ({ ...prev, state: e.target.value }))}
+                    required
                   />
                   <Input
                     placeholder="ZIP"
                     value={deliveryInfo.zipCode}
                     onChange={(e) => setDeliveryInfo(prev => ({ ...prev, zipCode: e.target.value }))}
+                    required
                   />
                 </div>
 
@@ -275,7 +341,7 @@ const CheckoutPage = () => {
               <CardContent className="space-y-4">
 
                 {cart.map(item => (
-                  <div key={item.id} className="flex justify-between">
+                  <div key={item.id || Math.random()} className="flex justify-between">
                     <span>{item.name} × {item.quantity}</span>
                     <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
@@ -288,13 +354,20 @@ const CheckoutPage = () => {
                   </span>
                 </div>
 
-                <Button
-                  className="w-full bg-gradient-to-r from-blue-500 to-green-500"
-                  onClick={handleFinalCheckout}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? "Processing..." : "Place Order"}
-                </Button>
+                <div className="flex gap-4">
+                  <Button variant="outline" onClick={() => setCurrentStep(2)}>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-green-500"
+                    onClick={handleFinalCheckout}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? "Processing..." : "Place Order"}
+                  </Button>
+                </div>
 
               </CardContent>
             </Card>
@@ -331,10 +404,17 @@ const CheckoutPage = () => {
       {/* PAYMENT MODAL */}
       <PaymentModal
         isOpen={isPaymentOpen}
-        onClose={() => setIsPaymentOpen(false)}
-        onPaymentSuccess={async () => {
+        onClose={() => {
+          console.log('💳 Payment modal closed');
           setIsPaymentOpen(false);
-          await handlePlaceOrder();
+        }}
+        onPaymentSuccess={async (result) => {
+          console.log('✅ Payment successful:', result);
+          
+          setIsPaymentOpen(false);
+          
+    
+          await handlePlaceOrder(result.transactionId);
         }}
         plan={{
           name: "Medicine Order",

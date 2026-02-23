@@ -17,8 +17,8 @@ interface PaymentModalProps {
   } | null;
   merchantUpiId?: string;
   merchantName?: string;
-
-  onPaymentSuccess?: () => void; 
+  // ✅ FIXED: Accept result parameter with transaction ID
+  onPaymentSuccess?: (result: { transactionId: string; upiId: string; amount: number }) => void; 
 }
 
 const PaymentModal = ({
@@ -101,8 +101,10 @@ const PaymentModal = ({
 
     const fakeTxnId = `UPI${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
 
+    console.log('💳 Payment completed with transaction ID:', fakeTxnId);
+
     const booking = {
-      planName: `${plan!.name} ${plan!.type} Consultation`,
+      planName: `${plan!.name} ${plan!.type}`,
       duration: plan!.duration,
       amount: plan!.price,
       bookingId: bookingIdRef.current,
@@ -114,8 +116,20 @@ const PaymentModal = ({
 
     await finalizeBookingAndSendEmail(booking);
 
-    if(onPaymentSuccess)
-      await onPaymentSuccess();
+    // ✅ CRITICAL FIX: Pass transaction ID to parent
+    if(onPaymentSuccess) {
+      console.log('✅ Calling onPaymentSuccess with result:', {
+        transactionId: fakeTxnId,
+        upiId: merchantUpiId,
+        amount: plan!.price
+      });
+      
+      await onPaymentSuccess({
+        transactionId: fakeTxnId,
+        upiId: merchantUpiId,
+        amount: plan!.price
+      });
+    }
 
     setIsVerifying(false);
     setStep(4);
@@ -159,7 +173,7 @@ const PaymentModal = ({
                   </div>
                   <div>
                     <h1 className="text-2xl font-bold">Complete Payment</h1>
-                    <p className="text-white/90">Secure checkout for your consultation</p>
+                    <p className="text-white/90">Secure checkout</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={handleClose} className="text-white hover:bg-white/20">
@@ -170,7 +184,7 @@ const PaymentModal = ({
 
             <div className="p-6 overflow-y-auto flex-1">
 
-              {/* Step 1 */}
+              {/* Step 1 - Email Collection */}
               {step === 1 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
 
@@ -181,10 +195,10 @@ const PaymentModal = ({
                     <CardContent>
                       <div className="flex justify-between items-center mb-4">
                         <div>
-                          <h3 className="font-semibold">{plan.name} {plan.type} Consultation</h3>
+                          <h3 className="font-semibold">{plan.name} {plan.type}</h3>
                           <p className="text-sm text-gray-600">{plan.duration}</p>
                         </div>
-                        <div className="text-2xl font-bold">₹{plan.price}</div>
+                        <div className="text-2xl font-bold">₹{plan.price.toFixed(2)}</div>
                       </div>
                     </CardContent>
                   </Card>
@@ -218,7 +232,7 @@ const PaymentModal = ({
                 </motion.div>
               )}
 
-              {/* Step 2 - UPI */}
+              {/* Step 2 - UPI QR Code */}
               {step === 2 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 text-center">
 
@@ -235,7 +249,7 @@ const PaymentModal = ({
                         </div>
                       )}
                       <p className="mt-4 text-sm text-gray-600">
-                        Amount: ₹{plan.price}
+                        Amount: ₹{plan.price.toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-500 mt-2">
                         UPI ID: {merchantUpiId}
@@ -248,7 +262,7 @@ const PaymentModal = ({
                     onClick={handleUpiPaid}
                     disabled={isVerifying}
                   >
-                    {isVerifying ? "Verifying..." : "Proceed now"}
+                    {isVerifying ? "Verifying..." : "I have completed the payment"}
                   </Button>
 
                 </motion.div>
@@ -261,6 +275,7 @@ const PaymentModal = ({
                     <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                   <h3 className="text-xl font-bold mb-2">Processing Payment...</h3>
+                  <p className="text-gray-600 text-sm">Please wait</p>
                 </motion.div>
               )}
 
@@ -272,7 +287,7 @@ const PaymentModal = ({
                   </div>
                   <h3 className="text-2xl font-bold text-green-600 mb-2">Payment Successful!</h3>
                   <p className="text-gray-600 mb-6">
-                    Confirmation sent to <strong>{formData.email}</strong>
+                    Your order is being processed
                   </p>
                   <Button
                     className="w-full max-w-xs bg-gradient-to-r from-indigo-500 to-purple-600 py-6"
