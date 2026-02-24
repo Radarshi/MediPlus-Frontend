@@ -4,7 +4,6 @@ import DoctorDetailModal from '@/components/DoctorDetailModal';
 import PaymentModal from '@/components/PaymentModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MessageCircle, Phone, Star, Video, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -276,9 +275,6 @@ const ConsultPage = () => {
                       <div className="space-y-2 mb-3">
                         <p className="text-xs text-gray-600">{doctor.experience} experience</p>
                         <p className="text-xs text-gray-600">{doctor.consultations}+ consultations</p>
-                        <div className="text-lg font-bold text-green-600">
-                          ₹{doctor.video_price || doctor.videoPrice}
-                        </div>
                       </div>
 
                       <div className="flex gap-2">

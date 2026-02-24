@@ -79,7 +79,6 @@ export default function AuthForm({ type = 'signup', onSubmit }) {
     }
   };
 
-  // ✅ FIXED: Use environment variable and correct route path
   const handleGoogleAuth = () => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     const googleAuthUrl = `${backendUrl}/api/auth/google`;
