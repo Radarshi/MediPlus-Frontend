@@ -67,7 +67,6 @@ const App = () => {
                     <Route path="/lab-tests" element={<LabTestPage />} />
                     <Route path="/health-blog" element={<HealthBlogPage />} />
                     <Route path="/dashboard" element={<UserDashboard />} />
-                    {/* ✅ OAuth callback route - handles Google login */}
                     <Route path="/auth/success" element={<AuthSuccess />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />

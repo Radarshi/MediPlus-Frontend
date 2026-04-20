@@ -22,25 +22,27 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // Check authentication status
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+const checkAuthStatus = () => {
+  const token = localStorage.getItem('token');
+  const userStr = localStorage.getItem('user');
 
-    if (token) {
-      setIsAuthenticated(true);
-    if (userStr && userStr !== "undefined" && userStr.trim() !== "") { 
-      try { 
-        const user = JSON.parse(userStr); 
-        setUserName(user.name || ""); 
-        setUserPicture(user.picture || ""); } 
-        catch (err) {
-           console.error("User parse error:", err);
-            setUserName(""); 
-            setUserPicture(""); } } }
-             else { 
-              setIsAuthenticated(false);
-               setUserName(""); 
-               setUserPicture(""); } };
+  if (token && userStr) {
+    setIsAuthenticated(true);
+    try {
+      const user = JSON.parse(userStr);
+      setUserName(user.name || 'User');
+      setUserPicture(user.picture || '');
+    } catch (err) {
+      console.error('User parse error:', err);
+      setUserName('User');
+      setUserPicture('');
+    }
+  } else {
+    setIsAuthenticated(false);
+    setUserName('');
+    setUserPicture('');
+  }
+};
 
   useEffect(() => {
     checkAuthStatus();
